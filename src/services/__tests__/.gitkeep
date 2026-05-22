@@ -1,0 +1,4 @@
+# Put your service tests in this directory.
+# Example: OpenMeteoService.test.ts, OpenWeatherMapService.test.ts
+#
+# Mock the network — do not hit live APIs from tests.
