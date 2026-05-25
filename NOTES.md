@@ -36,6 +36,7 @@
 
 - **`act` deprecation in hook tests** — the `useWeather` tests use `act` from `@testing-library/react-native`, which is marked as deprecated in the current version. It works and all tests pass, but I'd like to revisit this and find a cleaner approach with more time.
 - **`(global as any).fetch` in service tests** — uses an untyped cast to avoid pulling in a dedicated mock library like `jest-fetch-mock`. Loses some type safety on the mock, but avoids adding another library just for tests. Worth revisiting with more time.
+- **Redundant code and stale comments** — worth a pass to remove any leftover comments or scaffolding from the starter that are no longer relevant now that the implementation is in place.
 
 ---
 
