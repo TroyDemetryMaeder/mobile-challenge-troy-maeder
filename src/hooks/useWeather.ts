@@ -14,19 +14,9 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { OpenMeteoService } from '../services/OpenMeteoService';
-import { OpenWeatherMapService } from '../services/OpenWeatherMapService';
 import { IWeatherService } from '../services/IWeatherService';
 import { WeatherServiceError } from '../services/types';
 import { validateLocation } from '../validation/locationValidator';
-
-
-const services: Record<string, IWeatherService> = {
-  'Open-Meteo': new OpenMeteoService(),
-  'OpenWeatherMap': new OpenWeatherMapService(),
-};
-
-export const serviceNames = Object.keys(services);
 
 function toFetchError(error: Error | null, location: string): string | undefined {
   if (!error) return undefined;
@@ -38,16 +28,14 @@ function toFetchError(error: Error | null, location: string): string | undefined
   return 'Something went wrong. Please try again.';
 }
 
-export function useWeather() {
+export function useWeather(service: IWeatherService) {
   const [location, setLocation] = useState('');
-  const [selectedService, setSelectedService] = useState('OpenWeatherMap');
 
   const validationResult = validateLocation(location);
   const query = validationResult.valid ? validationResult.value : '';
-  const service = services[selectedService];
 
   const { data: weather, isLoading, error } = useQuery({
-    queryKey: ['weather', query, selectedService],
+    queryKey: ['weather', query, service.name],
     queryFn: () => service.fetchWeather({ query }),
     enabled: validationResult.valid,
     retry: false,
@@ -64,7 +52,5 @@ export function useWeather() {
     fetchError: toFetchError(error as Error | null, location),
     location,
     setLocation,
-    selectedService,
-    setSelectedService,
   };
 }

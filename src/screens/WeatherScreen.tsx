@@ -1,10 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Keyboard, ScrollView, StyleSheet, View } from 'react-native';
 import LocationInput from '../components/LocationInput';
 import ServiceToggle from '../components/ServiceToggle';
 import WeatherDisplay from '../components/WeatherDisplay';
-import { useWeather, serviceNames } from '../hooks/useWeather';
+import { useWeather } from '../hooks/useWeather';
+import { OpenMeteoService } from '../services/OpenMeteoService';
+import { OpenWeatherMapService } from '../services/OpenWeatherMapService';
+import { IWeatherService } from '../services/IWeatherService';
 import { colors } from '../theme/colors';
+
+const services: Record<string, IWeatherService> = {
+  OpenWeatherMap: new OpenWeatherMapService(),
+  'Open-Meteo': new OpenMeteoService(),
+};
+
+const serviceNames = Object.keys(services);
 
 /**
  * Screen skeleton wiring up the three components. The state shown here is
@@ -21,6 +31,8 @@ import { colors } from '../theme/colors';
  */
 
 const WeatherScreen: React.FC = () => {
+  const [selectedService, setSelectedService] = useState('OpenWeatherMap');
+
   const {
     weather,
     isLoading,
@@ -28,9 +40,7 @@ const WeatherScreen: React.FC = () => {
     fetchError,
     location,
     setLocation,
-    selectedService,
-    setSelectedService,
-  } = useWeather();
+  } = useWeather(services[selectedService]);
 
   return (
     <ScrollView
