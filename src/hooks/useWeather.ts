@@ -31,9 +31,9 @@ export const serviceNames = Object.keys(services);
 function toFetchError(error: Error | null, location: string): string | undefined {
   if (!error) return undefined;
   if (error instanceof WeatherServiceError) {
-    return error.code === 'NOT_FOUND'
-      ? `Location "${location}" not found.`
-      : 'Service unavailable. Please try again.';
+    if (error.code === 'NOT_FOUND') return `Location "${location}" not found.`;
+    if (error.code === 'NETWORK') return 'Check your connection.';
+    return 'Service unavailable. Please try again.';
   }
   return 'Something went wrong. Please try again.';
 }

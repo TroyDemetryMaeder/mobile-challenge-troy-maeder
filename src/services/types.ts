@@ -30,7 +30,7 @@ export interface WeatherData {
 export class WeatherServiceError extends Error {
   constructor(
     message: string,
-    public readonly code: 'NOT_FOUND' | 'NETWORK' | 'SERVICE_UNAVAILABLE' | 'UNKNOWN',
+    public readonly code: 'NOT_FOUND' | 'NETWORK' | 'SERVICE_UNAVAILABLE',
   ) {
     super(message);
     this.name = 'WeatherServiceError';
