@@ -1,5 +1,5 @@
-import {IWeatherService} from './IWeatherService';
-import {Location, WeatherData} from './types';
+import { IWeatherService } from './IWeatherService';
+import { Location, WeatherData } from './types';
 
 /**
  * Weather service backed by OpenWeatherMap (https://openweathermap.org/).
@@ -16,6 +16,23 @@ import {Location, WeatherData} from './types';
  *   - Decide what to do if the key is missing — fail loudly is usually
  *     better than failing silently.
  */
+
+interface OpenWeatherMapRawResponse {
+  name: string;
+  main: { temp: number };
+  weather: Array<{ description: string }>;
+}
+
+export function mapOpenWeatherMapResponse(raw: OpenWeatherMapRawResponse): WeatherData {
+  const description = raw.weather[0].description;
+  return {
+    temperature: Math.round(raw.main.temp),
+    condition: description.charAt(0).toUpperCase() + description.slice(1),
+    location: raw.name,
+    source: 'OpenWeatherMap',
+  };
+}
+
 export class OpenWeatherMapService implements IWeatherService {
   readonly name = 'OpenWeatherMap';
 
