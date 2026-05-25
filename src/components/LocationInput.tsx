@@ -34,7 +34,9 @@ const LocationInput: React.FC<LocationInputProps> = ({
         autoCorrect={false}
         autoCapitalize="words"
       />
-      {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
+      <Text style={[styles.errorText, !errorText && styles.errorTextHidden]}>
+        {errorText ?? ' '}
+      </Text>
     </View>
   );
 };
@@ -59,6 +61,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 13,
     color: colors.error,
+  },
+  errorTextHidden: {
+    opacity: 0,
   },
 });
 

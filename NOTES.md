@@ -1,54 +1,60 @@
 # Notes
 
-## 1. Architecture and modularity
+## Key architectural decisions
 
-The app is built around four distinct layers, each with a single responsibility:
+**Built on the starter's `IWeatherService` interface**
 
-**Services — data fetching and translation.** Each service knows how to talk to one specific API. URL construction, API keys, parsing the raw response, mapping it to `WeatherData`. Nothing else in the app touches any of this. The shared contract is `IWeatherService`:
+- **Server state vs client state** — weather data is server state (remote, async, cacheable) and is managed by React Query. Location input and selected service are client state (local, synchronous) and are managed with `useState`. Keeping these two concerns separate means the fetching layer handles caching, deduplication, and background refetches, while the UI state remains simple and predictable. The `queryKey: ['weather', query, service.name]` acts as an automatic dependency — changing either value triggers a refetch with no additional wiring.
 
-```ts
-interface IWeatherService {
-  readonly name: string;
-  fetchWeather(location: Location): Promise<WeatherData>;
-}
-```
+- **Error handling — two distinct layers** — input errors and fetch errors are kept separate because they have different causes and different UI treatments. `validateLocation` catches obviously bad input before it hits the network and returns a typed union (`{ valid: true, value } | { valid: false, reason }`). Network failures and API errors are handled downstream via `WeatherServiceError`, which carries a typed `code` — `NOT_FOUND`, `NETWORK`, or `SERVICE_UNAVAILABLE` — so the UI can give the user a meaningful, actionable message rather than a generic failure state.
 
-Adding a new provider is one new file that implements this interface and one line in the service registry. Removing one is the reverse.
-
-**`useWeather` hook — orchestration.** Knows which service is selected, calls `fetchWeather`, and manages loading and error state via React Query. Has no knowledge of what the UI looks like or how any specific API works. `queryKey: ['weather', location, selectedService]` acts as a dependency array — React Query automatically refetches whenever either value changes, satisfying the requirement that switching services re-fetches for the current location with no additional wiring.
-
-**Screen — wiring.** Calls the hook, receives the results, passes them down as props. No fetching logic, no service knowledge. Connects the hook to the components.
-
-**Components — display.** `WeatherDisplay`, `LocationInput`, `ServiceToggle`. Receive props and render them. Given the same props they always render the same output.
-
-Each layer only knows about the layer directly below it. The practical benefit: you can swap a weather provider without touching the hook, screen, or components. You can redesign the UI without touching the hook or services. You can test each layer in isolation.
+- **Testing through separation of concerns** — the architecture was shaped with testability in mind from the start. Each service extracts its response mapping as a pure function, which means translating a raw API response into the shared `WeatherData` shape can be tested with no mocks at all. The `useWeather` hook accepts an `IWeatherService` parameter rather than owning its dependencies, which means tests can inject a mock service directly and exercise the hook's error-mapping logic without any network involvement.
 
 ---
 
-## 2. Testability and tests
+## Trade-offs
 
-The architecture was designed with testability in mind from the start. The key decision was separating the mapping logic from the fetching logic inside each service.
+- **State kept local to the hook as opposed to using Zustand or something similar** — works for a single screen but sharing it across multiple screens would require lifting state up or prop-drilling; a global state manager could be the cleaner solution as the app grows
+- **`retry: false`** — React Query retries failed requests 3 times by default, which means a 404 for an unknown location would delay the error message by several seconds. Disabling retries shows the error immediately. The trade-off is that a genuine transient network blip won't recover silently — the user will see an error and have to try again manually.
+- **`staleTime` set to 5 minutes** — React Query defaults to `staleTime: 0`, which marks data as stale immediately after fetching. That means cached data may refetch on remount, window focus, or reconnect events. Setting `staleTime` to 5 minutes allows recently fetched weather data to be reused from cache — for example when switching services and back — instead of triggering unnecessary network requests. The trade-off is that data may be up to 5 minutes old, though both APIs update relatively infrequently anyway. 
 
-Each service does two things: make an HTTP call, and translate the raw response into `WeatherData`. The translation is extracted as a pure function (`mapOpenMeteoResponse`, `mapOpenWeatherMapResponse`). These can be tested directly with no mocks — just input in, output out. This is where bugs are most likely to live, and it is the easiest possible thing to test.
-
-Similarly, `weatherCodeToCondition` is extracted as its own pure function so each weather code can be verified individually with zero setup.
-
-The fetch-level tests are then kept minimal — just verifying that 404s and network failures produce the correct `WeatherServiceError` code. `validateLocation` is a pure function with no dependencies and requires no setup at all.
-
-The result is a test suite where the interesting logic is tested without mocks, and mocks are only used for the thin layer of HTTP error handling.
 
 ---
 
-## 3. Input validation
+## What I'd improve with more time
 
-One rule: the input must be at least 2 characters after trimming.
+- **API response validation with Zod** — the mappers currently trust the API response shape; if a provider changes a field name it fails silently. Zod could validate the response at the boundary and fail loudly instead.
+- **Debouncing** — the query fires on every valid keystroke; a `useDebounce` hook would reduce unnecessary API calls significantly
+- **Per-service theming** — the architecture already supports it (`selectedService` is already in the hook), just not implemented in the time available
+- **Weather icons** — a proper icon set mapped to weather conditions would improve the UI significantly over plain text condition strings
+- **Consistent formatting** — some files have inconsistent import spacing due to Prettier running on save in the editor but not across all files; a format pass across the whole codebase would clean this up
+- **End-to-end tests** — given how focused the app is (one screen, two services, one input), it could be worth exploring a lightweight E2E suite. A happy-path flow — enter a valid location, see weather data, switch service, see data refresh — would potentially cover the entire core user journey in a single test.
 
-We deliberately kept this minimal. A "must contain a letter" rule was considered but dropped — both Open-Meteo and OpenWeatherMap accept postcodes like `"90210"` or `"SW1A"` as valid queries, so rejecting digit-only input would block real use cases. A character allowlist would risk blocking valid place names from non-Latin scripts. The validator's only job is to prevent obviously empty or trivial input from hitting the network. Anything that passes is close enough — if the location doesn't exist, the API returns `NOT_FOUND` and we surface that to the user.
+- **Input performance** — typing in the location field feels slightly janky, which could be a simulator limitation or a genuine performance issue worth profiling. Debouncing the input would reduce the number of queries firing on each keystroke and may help, but the root cause would need investigating on a real device before drawing conclusions.
 
-A maximum length is a real concern — very long strings shouldn't hit the network. However, any specific number would be arbitrary without data on what real queries look like, so this is left to the API for now. This is worth revisiting.
+**Refactoring**
 
-**Why 2 characters?** It's the shortest a real place name or postcode can reasonably be — "LA" is valid, a single "a" is not. It's a floor, not an arbitrary cap.
-
-**Why trim first?** Two reasons. First, correctness of our own rule: `"  a  "` is 5 characters and would pass a naive 2-char check, even though the user only typed one letter. Trimming means we check what they actually typed. Second, React Query uses the location as part of the cache key — `"London"` and `"London "` would be cached separately without trimming. The trimmed value is also what gets sent to the API.
+- **`act` deprecation in hook tests** — the `useWeather` tests use `act` from `@testing-library/react-native`, which is marked as deprecated in the current version. It works and all tests pass, but I'd like to revisit this and find a cleaner approach with more time.
+- **`(global as any).fetch` in service tests** — uses an untyped cast to avoid pulling in a dedicated mock library like `jest-fetch-mock`. Loses some type safety on the mock, but avoids adding another library just for tests. Worth revisiting with more time.
 
 ---
+
+## AI usage
+
+Claude (Claude Sonnet 4.6 via Claude Code) was used for:
+
+- Accelerating onboarding to the starter project and understanding the existing structure
+- Generating the initial `android/` and `ios/` native folders, since they were not included in the starter
+- Discussing and evaluating architectural approaches — initial research was done independently then refined through AI-assisted discussion
+- Assisting with implementation and scaffolding (hooks, services, screen wiring, and tests)
+- Iterating on solutions based on my own review and direction — issues and improvements were identified by me, then discussed and implemented with AI assistance
+- Documentation — the content and decisions are my own; AI was used to improve the clarity and readability of the writing
+- Writing tests — what to test, the coverage strategy, and the architectural decisions around testability were my own; AI assisted with the implementation of the test cases
+
+AI was not used for:
+
+- Reading or interpreting API documentation — Open-Meteo, OpenWeatherMap, and React Query docs were reviewed directly to understand request/response structures, query behaviour, and configuration options
+- Verifying WMO weather codes — these were checked against the official WMO reference table in the Open-Meteo documentation rather than relying on AI-generated mappings
+- Code quality — all changes were checked and verified before each commit
+- Testing — network calls, caching behaviour, and end-to-end flows were verified directly in the app
+

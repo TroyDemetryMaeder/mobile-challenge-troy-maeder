@@ -39,6 +39,7 @@ export function useWeather(service: IWeatherService) {
     queryFn: () => service.fetchWeather({ query }),
     enabled: validationResult.valid,
     retry: false,
+    staleTime: 5 * 60 * 1000,
   });
 
   const inputError = location.length > 0 && !validationResult.valid

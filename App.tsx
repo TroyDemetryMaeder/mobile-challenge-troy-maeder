@@ -3,7 +3,9 @@ import React from 'react';
 import { SafeAreaView, StatusBar, StyleSheet } from 'react-native';
 import WeatherScreen from './src/screens/WeatherScreen';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { refetchOnWindowFocus: false } },
+});
 
 const App: React.FC = () => {
   return (
