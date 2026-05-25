@@ -1,9 +1,9 @@
-import React, {useState} from 'react';
-import {ScrollView, StyleSheet, View} from 'react-native';
+import React, { useState } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import LocationInput from '../components/LocationInput';
 import ServiceToggle from '../components/ServiceToggle';
 import WeatherDisplay from '../components/WeatherDisplay';
-import {colors} from '../theme/colors';
+import { colors } from '../theme/colors';
 
 /**
  * Screen skeleton wiring up the three components. The state shown here is
