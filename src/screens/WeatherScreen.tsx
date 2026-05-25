@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import React from 'react';
+import { Keyboard, ScrollView, StyleSheet, View } from 'react-native';
 import LocationInput from '../components/LocationInput';
 import ServiceToggle from '../components/ServiceToggle';
 import WeatherDisplay from '../components/WeatherDisplay';
+import { useWeather, serviceNames } from '../hooks/useWeather';
 import { colors } from '../theme/colors';
 
 /**
@@ -18,9 +19,18 @@ import { colors } from '../theme/colors';
  *
  * You decide where this logic lives (here, a hook, context, etc.).
  */
+
 const WeatherScreen: React.FC = () => {
-  const [locationText, setLocationText] = useState('');
-  const [selectedService, setSelectedService] = useState<string>('Open-Meteo');
+  const {
+    weather,
+    isLoading,
+    inputError,
+    fetchError,
+    location,
+    setLocation,
+    selectedService,
+    setSelectedService,
+  } = useWeather();
 
   return (
     <ScrollView
@@ -29,24 +39,27 @@ const WeatherScreen: React.FC = () => {
       keyboardShouldPersistTaps="handled">
       <View style={styles.section}>
         <LocationInput
-          value={locationText}
-          onChangeText={setLocationText}
-          onSubmit={() => {
-            // TODO: trigger weather fetch
-          }}
+          value={location}
+          onChangeText={setLocation}
+          onSubmit={() => Keyboard.dismiss()}
+          errorText={inputError}
         />
       </View>
 
       <View style={styles.section}>
         <ServiceToggle
-          options={['Open-Meteo', 'OpenWeatherMap']}
+          options={serviceNames}
           selected={selectedService}
           onSelect={setSelectedService}
         />
       </View>
 
       <View style={styles.section}>
-        <WeatherDisplay weather={null} />
+        <WeatherDisplay
+          weather={weather}
+          loading={isLoading}
+          errorText={fetchError}
+        />
       </View>
     </ScrollView>
   );
