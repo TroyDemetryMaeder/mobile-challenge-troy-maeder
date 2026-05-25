@@ -38,3 +38,17 @@ The fetch-level tests are then kept minimal — just verifying that 404s and net
 The result is a test suite where the interesting logic is tested without mocks, and mocks are only used for the thin layer of HTTP error handling.
 
 ---
+
+## 3. Input validation
+
+One rule: the input must be at least 2 characters after trimming.
+
+We deliberately kept this minimal. A "must contain a letter" rule was considered but dropped — both Open-Meteo and OpenWeatherMap accept postcodes like `"90210"` or `"SW1A"` as valid queries, so rejecting digit-only input would block real use cases. A character allowlist would risk blocking valid place names from non-Latin scripts. The validator's only job is to prevent obviously empty or trivial input from hitting the network. Anything that passes is close enough — if the location doesn't exist, the API returns `NOT_FOUND` and we surface that to the user.
+
+A maximum length is a real concern — very long strings shouldn't hit the network. However, any specific number would be arbitrary without data on what real queries look like, so this is left to the API for now. This is worth revisiting.
+
+**Why 2 characters?** It's the shortest a real place name or postcode can reasonably be — "LA" is valid, a single "a" is not. It's a floor, not an arbitrary cap.
+
+**Why trim first?** Two reasons. First, correctness of our own rule: `"  a  "` is 5 characters and would pass a naive 2-char check, even though the user only typed one letter. Trimming means we check what they actually typed. Second, React Query uses the location as part of the cache key — `"London"` and `"London "` would be cached separately without trimming. The trimmed value is also what gets sent to the API.
+
+---
