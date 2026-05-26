@@ -13,9 +13,15 @@
  */
 
 export type ValidationResult =
-  | {valid: true; value: string}
-  | {valid: false; reason: string};
+  | { valid: true; value: string }
+  | { valid: false; reason: string };
 
-export function validateLocation(_input: string): ValidationResult {
-  throw new Error('validateLocation not implemented');
+export function validateLocation(input: string): ValidationResult {
+  const trimmed = input.trim();
+
+  if (trimmed.length < 2) {
+    return { valid: false, reason: 'Please enter a location with at least 2 characters.' };
+  }
+
+  return { valid: true, value: trimmed };
 }

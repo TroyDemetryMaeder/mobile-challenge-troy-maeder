@@ -1,6 +1,6 @@
 import React from 'react';
-import {StyleSheet, TextInput, View} from 'react-native';
-import {colors} from '../theme/colors';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { colors } from '../theme/colors';
 
 /**
  * Stub for the location input. Wire up state, validation, and submission
@@ -20,11 +20,12 @@ const LocationInput: React.FC<LocationInputProps> = ({
   value,
   onChangeText,
   onSubmit,
+  errorText,
 }) => {
   return (
     <View style={styles.container}>
       <TextInput
-        style={styles.input}
+        style={[styles.input, errorText ? styles.inputError : null]}
         value={value}
         onChangeText={onChangeText}
         onSubmitEditing={onSubmit}
@@ -33,6 +34,9 @@ const LocationInput: React.FC<LocationInputProps> = ({
         autoCorrect={false}
         autoCapitalize="words"
       />
+      <Text style={[styles.errorText, !errorText && styles.errorTextHidden]}>
+        {errorText ?? ' '}
+      </Text>
     </View>
   );
 };
@@ -49,6 +53,17 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 16,
     color: colors.text,
+  },
+  inputError: {
+    borderColor: colors.error,
+  },
+  errorText: {
+    marginTop: 4,
+    fontSize: 13,
+    color: colors.error,
+  },
+  errorTextHidden: {
+    opacity: 0,
   },
 });
 

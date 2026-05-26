@@ -1,9 +1,20 @@
-import React, {useState} from 'react';
-import {ScrollView, StyleSheet, View} from 'react-native';
+import React, { useState } from 'react';
+import { Keyboard, ScrollView, StyleSheet, View } from 'react-native';
 import LocationInput from '../components/LocationInput';
 import ServiceToggle from '../components/ServiceToggle';
 import WeatherDisplay from '../components/WeatherDisplay';
-import {colors} from '../theme/colors';
+import { useWeather } from '../hooks/useWeather';
+import { OpenMeteoService } from '../services/OpenMeteoService';
+import { OpenWeatherMapService } from '../services/OpenWeatherMapService';
+import { IWeatherService } from '../services/IWeatherService';
+import { colors } from '../theme/colors';
+
+const services: Record<string, IWeatherService> = {
+  OpenWeatherMap: new OpenWeatherMapService(),
+  'Open-Meteo': new OpenMeteoService(),
+};
+
+const serviceNames = Object.keys(services);
 
 /**
  * Screen skeleton wiring up the three components. The state shown here is
@@ -18,9 +29,18 @@ import {colors} from '../theme/colors';
  *
  * You decide where this logic lives (here, a hook, context, etc.).
  */
+
 const WeatherScreen: React.FC = () => {
-  const [locationText, setLocationText] = useState('');
-  const [selectedService, setSelectedService] = useState<string>('Open-Meteo');
+  const [selectedService, setSelectedService] = useState('OpenWeatherMap');
+
+  const {
+    weather,
+    isLoading,
+    inputError,
+    fetchError,
+    location,
+    setLocation,
+  } = useWeather(services[selectedService]);
 
   return (
     <ScrollView
@@ -29,24 +49,27 @@ const WeatherScreen: React.FC = () => {
       keyboardShouldPersistTaps="handled">
       <View style={styles.section}>
         <LocationInput
-          value={locationText}
-          onChangeText={setLocationText}
-          onSubmit={() => {
-            // TODO: trigger weather fetch
-          }}
+          value={location}
+          onChangeText={setLocation}
+          onSubmit={() => Keyboard.dismiss()}
+          errorText={inputError}
         />
       </View>
 
       <View style={styles.section}>
         <ServiceToggle
-          options={['Open-Meteo', 'OpenWeatherMap']}
+          options={serviceNames}
           selected={selectedService}
           onSelect={setSelectedService}
         />
       </View>
 
       <View style={styles.section}>
-        <WeatherDisplay weather={null} />
+        <WeatherDisplay
+          weather={weather}
+          loading={isLoading}
+          errorText={fetchError}
+        />
       </View>
     </ScrollView>
   );
