@@ -1,4 +1,4 @@
-import { weatherCodeToCondition } from '../OpenMeteoService';
+import {weatherCodeToCondition} from '../OpenMeteoService';
 
 describe('weatherCodeToCondition', () => {
   // Exhaustive regression guard — the app depends on these mappings being correct.

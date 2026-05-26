@@ -44,7 +44,9 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
   return (
     <View style={styles.container}>
       <Text style={styles.location}>{weather.location}</Text>
-      <Text style={styles.temperature}>{Math.round(weather.temperature)}°C</Text>
+      <Text style={styles.temperature}>
+        {Math.round(weather.temperature)}°C
+      </Text>
       <Text style={styles.condition}>{weather.condition}</Text>
       <Text style={styles.source}>via {weather.source}</Text>
     </View>
