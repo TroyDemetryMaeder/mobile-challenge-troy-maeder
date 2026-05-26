@@ -1,10 +1,10 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import React from 'react';
-import { SafeAreaView, StatusBar, StyleSheet } from 'react-native';
+import {SafeAreaView, StatusBar, StyleSheet} from 'react-native';
 import WeatherScreen from './src/screens/WeatherScreen';
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { refetchOnWindowFocus: false } },
+  defaultOptions: {queries: {refetchOnWindowFocus: false}},
 });
 
 const App: React.FC = () => {

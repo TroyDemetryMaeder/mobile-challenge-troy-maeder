@@ -1,5 +1,5 @@
-import { IWeatherService } from './IWeatherService';
-import { Location, WeatherData, WeatherServiceError } from './types';
+import {IWeatherService} from './IWeatherService';
+import {Location, WeatherData, WeatherServiceError} from './types';
 
 interface OpenMeteoRawResponse {
   name: string;
@@ -73,34 +73,47 @@ export class OpenMeteoService implements IWeatherService {
   async fetchWeather(location: Location): Promise<WeatherData> {
     try {
       const geoRes = await fetch(
-        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(location.query)}&count=1`,
+        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
+          location.query,
+        )}&count=1`,
       );
 
       if (!geoRes.ok) {
-        throw new WeatherServiceError('Open-Meteo geocoding unavailable', 'SERVICE_UNAVAILABLE');
+        throw new WeatherServiceError(
+          'Open-Meteo geocoding unavailable',
+          'SERVICE_UNAVAILABLE',
+        );
       }
 
       const geoData = await geoRes.json();
 
       if (!geoData.results?.length) {
-        throw new WeatherServiceError(`Location not found: ${location.query}`, 'NOT_FOUND');
+        throw new WeatherServiceError(
+          `Location not found: ${location.query}`,
+          'NOT_FOUND',
+        );
       }
 
-      const { name, latitude, longitude } = geoData.results[0];
+      const {name, latitude, longitude} = geoData.results[0];
 
       const forecastRes = await fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weathercode`,
       );
 
       if (!forecastRes.ok) {
-        throw new WeatherServiceError('Open-Meteo forecast unavailable', 'SERVICE_UNAVAILABLE');
+        throw new WeatherServiceError(
+          'Open-Meteo forecast unavailable',
+          'SERVICE_UNAVAILABLE',
+        );
       }
 
       const forecastData = await forecastRes.json();
 
-      return mapOpenMeteoResponse({ name, current: forecastData.current });
+      return mapOpenMeteoResponse({name, current: forecastData.current});
     } catch (error) {
-      if (error instanceof WeatherServiceError) throw error;
+      if (error instanceof WeatherServiceError) {
+        throw error;
+      }
       throw new WeatherServiceError('Network request failed', 'NETWORK');
     }
   }

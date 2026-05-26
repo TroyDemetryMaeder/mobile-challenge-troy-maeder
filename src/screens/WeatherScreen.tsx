@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { Keyboard, ScrollView, StyleSheet, View } from 'react-native';
+import React, {useState} from 'react';
+import {Keyboard, ScrollView, StyleSheet, View} from 'react-native';
 import LocationInput from '../components/LocationInput';
 import ServiceToggle from '../components/ServiceToggle';
 import WeatherDisplay from '../components/WeatherDisplay';
-import { useWeather } from '../hooks/useWeather';
-import { OpenMeteoService } from '../services/OpenMeteoService';
-import { OpenWeatherMapService } from '../services/OpenWeatherMapService';
-import { IWeatherService } from '../services/IWeatherService';
-import { colors } from '../theme/colors';
+import {useWeather} from '../hooks/useWeather';
+import {OpenMeteoService} from '../services/OpenMeteoService';
+import {OpenWeatherMapService} from '../services/OpenWeatherMapService';
+import {IWeatherService} from '../services/IWeatherService';
+import {colors} from '../theme/colors';
 
 const services: Record<string, IWeatherService> = {
   OpenWeatherMap: new OpenWeatherMapService(),
@@ -33,14 +33,8 @@ const serviceNames = Object.keys(services);
 const WeatherScreen: React.FC = () => {
   const [selectedService, setSelectedService] = useState('OpenWeatherMap');
 
-  const {
-    weather,
-    isLoading,
-    inputError,
-    fetchError,
-    location,
-    setLocation,
-  } = useWeather(services[selectedService]);
+  const {weather, isLoading, inputError, fetchError, location, setLocation} =
+    useWeather(services[selectedService]);
 
   return (
     <ScrollView

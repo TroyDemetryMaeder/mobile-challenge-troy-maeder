@@ -1,5 +1,7 @@
 # Notes
 
+> The `android/` and `ios/` native folders were not included in the starter repo. I generated and committed them so the project is ready to run.
+
 ## Key architectural decisions
 
 **Built on the starter's `IWeatherService` interface**
@@ -16,8 +18,7 @@
 
 - **State kept local to the hook as opposed to using Zustand or something similar** — works for a single screen but sharing it across multiple screens would require lifting state up or prop-drilling; a global state manager could be the cleaner solution as the app grows
 - **`retry: false`** — React Query retries failed requests 3 times by default, which means a 404 for an unknown location would delay the error message by several seconds. Disabling retries shows the error immediately. The trade-off is that a genuine transient network blip won't recover silently — the user will see an error and have to try again manually.
-- **`staleTime` set to 5 minutes** — React Query defaults to `staleTime: 0`, which marks data as stale immediately after fetching. That means cached data may refetch on remount, window focus, or reconnect events. Setting `staleTime` to 5 minutes allows recently fetched weather data to be reused from cache — for example when switching services and back — instead of triggering unnecessary network requests. The trade-off is that data may be up to 5 minutes old, though both APIs update relatively infrequently anyway. 
-
+- **`staleTime` set to 5 minutes** — React Query defaults to `staleTime: 0`, which marks data as stale immediately after fetching. That means cached data may refetch on remount, window focus, or reconnect events. Setting `staleTime` to 5 minutes allows recently fetched weather data to be reused from cache — for example when switching services and back — instead of triggering unnecessary network requests. The trade-off is that data may be up to 5 minutes old, though both APIs update relatively infrequently anyway.
 
 ---
 
@@ -29,6 +30,7 @@
 - **Weather icons** — a proper icon set mapped to weather conditions would improve the UI significantly over plain text condition strings
 - **Consistent formatting** — some files have inconsistent import spacing due to Prettier running on save in the editor but not across all files; a format pass across the whole codebase would clean this up
 - **End-to-end tests** — given how focused the app is (one screen, two services, one input), it could be worth exploring a lightweight E2E suite. A happy-path flow — enter a valid location, see weather data, switch service, see data refresh — would potentially cover the entire core user journey in a single test.
+- **Android testing** — not so much an improvement, but given more time I would have set up my machine for Android testing. All testing was done on iOS.
 
 - **Input performance** — typing in the location field feels slightly janky, which could be a simulator limitation or a genuine performance issue worth profiling. Debouncing the input would reduce the number of queries firing on each keystroke and may help, but the root cause would need investigating on a real device before drawing conclusions.
 
@@ -58,4 +60,3 @@ AI was not used for:
 - Verifying WMO weather codes — these were checked against the official WMO reference table in the Open-Meteo documentation rather than relying on AI-generated mappings
 - Code quality — all changes were checked and verified before each commit
 - Testing — network calls, caching behaviour, and end-to-end flows were verified directly in the app
-

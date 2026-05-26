@@ -26,8 +26,7 @@ const ServiceToggle: React.FC<ServiceToggleProps> = ({
             key={name}
             onPress={() => onSelect(name)}
             style={[styles.button, isSelected && styles.buttonSelected]}>
-            <Text
-              style={[styles.label, isSelected && styles.labelSelected]}>
+            <Text style={[styles.label, isSelected && styles.labelSelected]}>
               {name}
             </Text>
           </Pressable>

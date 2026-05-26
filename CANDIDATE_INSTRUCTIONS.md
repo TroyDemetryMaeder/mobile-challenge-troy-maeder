@@ -82,6 +82,7 @@ You can use the starter or start fresh; we recommend the starter to save setup t
    - Anything you'd like us to know before the follow-up
 
 ## On using AI tools
+
 You may use AI assistants (Claude, ChatGPT, Copilot, Cursor, etc.) — this reflects how real work happens. We ask two things:
 
 In your NOTES.md, briefly describe how you used AI: which tools, for which parts (scaffolding, debugging, generating tests, brainstorming architecture, etc.), and where you chose not to use it.
